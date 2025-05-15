@@ -1,4 +1,4 @@
-name: Fetch Repository Issues
+name: Comment on Repo Issue
 
 on:
   workflow_dispatch:
@@ -7,13 +7,13 @@ permissions:
   issues: write
 
 jobs:
-  fetch-issues:
+  comment-on-issues:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Retrieve Issues
+      - name: Comment if past date
         uses: actions/github-script@v7
         with:
           script: |
