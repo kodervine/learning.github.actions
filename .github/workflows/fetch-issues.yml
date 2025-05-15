@@ -30,13 +30,13 @@ jobs:
               const createdAt = new Date(issue.created_at);
 
               if (today > createdAt) {
-                const commentValue = `This issue was created on ${createdAt.toDateString()}, and today is ${today.toDateString()}. Just leaving a comment because the date has passed.`;
+                const comment = `This issue was created on ${createdAt.toDateString()}, and today is ${today.toDateString()}. Just leaving a comment because the date has passed.`;
 
                 await github.rest.issues.createComment({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   issue_number: issue.number,
-                  body: commentBody
+                  body: comment
                 });
 
                 console.log(`Wrote a comment on issue #${issue.number}`);
