@@ -3,6 +3,9 @@ name: Fetch Repository Issues
 on:
   workflow_dispatch:
 
+permissions:
+  issues: write
+
 jobs:
   fetch-issues:
     runs-on: ubuntu-latest
