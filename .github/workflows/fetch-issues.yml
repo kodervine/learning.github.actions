@@ -1,4 +1,4 @@
-name: Comment on Project Issues Based on Timeline
+name: Comment on Project Issues
 
 on:
   workflow_dispatch:
@@ -7,11 +7,11 @@ permissions:
   issues: write
 
 jobs:
-  timeline-commenter:
+  comment-on-issue:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Comment on issues based on timeline
+      - name: Comment on issues
         uses: actions/github-script@v7
         with:
           script: |
@@ -51,8 +51,12 @@ jobs:
                 }
 
                 if (endDateStr) {
-                  const endDate = new Date(endDateStr);
-                  const diffInDays = Math.floor((endDate - today) / oneDay);
+                  const formatTime = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                  const todayDate = formatTime(new Date());
+                  const endDate = formatTime(new Date(endDateStr));
+
+                  const diffInDays = Math.floor((endDate - todayDate) / oneDay);
+
 
                   if (diffInDays === 0) {
                     comment = `Note: this task is scheduled to end **today** (${endDateStr}).`;
