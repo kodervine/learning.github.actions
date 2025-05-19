@@ -26,18 +26,18 @@ jobs:
             );
 
             const today = new Date();
-            const todayStr = today.toISOString().split('T')[0]; 
+            const oneDay = 24 * 60 * 60 * 1000;
+            const todayStr = today.toISOString().split('T')[0];
 
             for (const issue of issues) {
               try {
                 const body = issue.body || "";
 
-               const startMatch = body.match(/Start Date:\s*(\d{4}-\d{2}-\d{2})/i);
+                const startMatch = body.match(/Start Date:\s*(\d{4}-\d{2}-\d{2})/i);
                 const endMatch = body.match(/End Date:\s*(\d{4}-\d{2}-\d{2})/i);
 
                 const startDateStr = startMatch?.[1];
                 const endDateStr = endMatch?.[1];
-
 
                 if (!startDateStr && !endDateStr) {
                   console.log(`Skipped Issue #${issue.number} cos no start or end date found.`);
@@ -47,9 +47,20 @@ jobs:
                 let comment = null;
 
                 if (startDateStr === todayStr) {
-                  comment = `Note that this task starts today (${todayStr})`;
-                } else if (endDateStr === todayStr) {
-                  comment = `Gentle reminder: This task is scheduled to end today (${todayStr})`;
+                  comment = `Note that this task starts today (${startDateStr}).`;
+                }
+
+                if (endDateStr) {
+                  const endDate = new Date(endDateStr);
+                  const diffInDays = Math.floor((endDate - today) / oneDay);
+
+                  if (diffInDays === 0) {
+                    comment = `Note: this task is scheduled to end **today** (${endDateStr}).`;
+                  } else if (diffInDays === -1) {
+                    comment = `This task was due **yesterday** (${endDateStr}) and is still open. Please update its status.`;
+                  } else if (diffInDays >= -1 && diffInDays <= 2) {
+                    comment = `Gentle reminder: This task is due in **${diffInDays}** day(s) (scheduled for ${endDateStr}).`;
+                  }
                 }
 
                 if (comment) {
@@ -61,9 +72,9 @@ jobs:
                   });
                   console.log(`Commented on issue #${issue.number}`);
                 } else {
-                  console.log(`ℹIssue #${issue.number} has no timeline event today.`);
+                  console.log(`ℹIssue #${issue.number} no event today.`);
                 }
               } catch (err) {
-                console.error(`Error processing issue #${issue.number}:`, err.message);
+                console.error(`Error processing issue #${issue.number}: ${err.message}`);
               }
             }
