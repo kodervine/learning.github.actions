@@ -32,11 +32,12 @@ jobs:
               try {
                 const body = issue.body || "";
 
-                const startMatch = body.match(/Start Date:\s*(\d{4}-\d{2}-\d{2})/i);
+               const startMatch = body.match(/Start Date:\s*(\d{4}-\d{2}-\d{2})/i);
                 const endMatch = body.match(/End Date:\s*(\d{4}-\d{2}-\d{2})/i);
 
-                const startDateStr = startMatch?.[2];
-                const endDateStr = endMatch?.[2];
+                const startDateStr = startMatch?.[1];
+                const endDateStr = endMatch?.[1];
+
 
                 if (!startDateStr && !endDateStr) {
                   console.log(`Skipped Issue #${issue.number} cos no start or end date found.`);
