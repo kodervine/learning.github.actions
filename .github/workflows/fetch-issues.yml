@@ -1,4 +1,4 @@
-name: Comment on Repo Issue
+name: Comment on Project Issues Based on Timeline
 
 on:
   workflow_dispatch:
@@ -7,13 +7,11 @@ permissions:
   issues: write
 
 jobs:
-  comment-on-issues:
+  timeline-commenter:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
 
-      - name: Comment if past date
+    steps:
+      - name: Comment on issues based on timeline
         uses: actions/github-script@v7
         with:
           script: |
@@ -27,23 +25,44 @@ jobs:
               }
             );
 
-             const today = new Date();
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0]; /
 
             for (const issue of issues) {
-              const createdAt = new Date(issue.created_at);
+              try {
+                const body = issue.body || "";
 
-              if (today > createdAt) {
-                const comment = `This issue was created on ${createdAt.toDateString()}, and today is ${today.toDateString()}. Just leaving a comment because the date has passed.`;
+                const startMatch = body.match(/Start Date:\s*(\d{4}-\d{2}-\d{2})/i);
+                const endMatch = body.match(/End Date:\s*(\d{4}-\d{2}-\d{2})/i);
 
-                await github.rest.issues.createComment({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issue.number,
-                  body: comment
-                });
+                const startDateStr = startMatch?.[2];
+                const endDateStr = endMatch?.[2];
 
-                console.log(`Wrote a comment on issue #${issue.number}`);
-              } else {
-                console.log(`Skipped issue #${issue.number}, date not reached.`);
+                if (!startDateStr && !endDateStr) {
+                  console.log(`Skipped Issue #${issue.number} cos no start or end date found.`);
+                  continue;
+                }
+
+                let comment = null;
+
+                if (startDateStr === todayStr) {
+                  comment = `Note that this task starts today (${todayStr})`;
+                } else if (endDateStr === todayStr) {
+                  comment = `Gentle reminder: This task is scheduled to end today (${todayStr})`;
+                }
+
+                if (comment) {
+                  await github.rest.issues.createComment({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: issue.number,
+                    body: comment
+                  });
+                  console.log(`Commented on issue #${issue.number}`);
+                } else {
+                  console.log(`ℹIssue #${issue.number} has no timeline event today.`);
+                }
+              } catch (err) {
+                console.error(`Error processing issue #${issue.number}:`, err.message);
               }
             }
